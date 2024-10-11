@@ -61,6 +61,11 @@ class RocketChatBot(object):
                     cmd_list[1](arguments, user, channel_id)
                     return
 
+            for cmd_list in self.commands:
+                if len(cmd_list[0]) < 1:
+                    cmd_list[1](arguments, user, channel_id)
+                    return
+
             if not self.handle_auto_answer(message, self.direct_answers, channel_id):
                 self.send_message('@' + user + ' :' + choice(self.unknow_command), channel_id)
         else:
