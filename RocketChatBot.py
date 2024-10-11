@@ -10,6 +10,7 @@ class RocketChatBot(object):
     def __init__(self, botname, passwd, server, command_character=None):
         self.botname = botname
         self.api = RocketChat(user=botname, password=passwd, server_url=server)
+        self.url = server
         self.commands = [(['echo', ], self.echo)]
         self.auto_answers = []
         self.direct_answers = []
@@ -23,8 +24,13 @@ class RocketChatBot(object):
     def get_status(self, auser):
         return self.api.users_get_presence(username=auser)
 
-    def send_message(self, msg, channel_id):
-        self.api.chat_post_message(channel=channel_id, text=msg)
+    def send_message(self, msg, channel_id, reply_to=None):
+        if reply_to is None:
+            self.api.chat_post_message(channel=channel_id, text=msg)
+        else:
+            msg = f'[ ]({self.url}/channel/{channel_id}?msg={reply_to}) {msg}'
+            # self.api.chat_post_message(channel=channel_id, text=msg, tmid=reply_to)
+            self.api.chat_post_message(channel=channel_id, text=msg)
 
     def add_dm_handler(self, command, action):
         self.commands.append((command, action))
@@ -63,7 +69,7 @@ class RocketChatBot(object):
 
             for cmd_list in self.commands:
                 if len(cmd_list[0]) < 1:
-                    cmd_list[1](arguments, user, channel_id)
+                    cmd_list[1](msg, user, channel_id, message['_id'])
                     return
 
             if not self.handle_auto_answer(message, self.direct_answers, channel_id):
